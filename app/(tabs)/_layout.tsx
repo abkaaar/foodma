@@ -24,8 +24,9 @@ export default function TabLayout() {
         backgroundColor: 'transparent',
         borderRadius: 15,
         height: 50,
-        marginBottom: 10,
-        },
+        paddingBottom: 5,
+        paddingTop: 5,
+      },
         default: {
         position: 'absolute',
         bottom: 10,
@@ -34,8 +35,7 @@ export default function TabLayout() {
         elevation: 4,
         backgroundColor: Colors[colorScheme ?? 'light'].background,
         borderRadius: 15,
-        height: 60,
-        paddingBottom: 5,
+        height: 50,
         },
       }),
       }}>
