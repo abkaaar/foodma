@@ -12,7 +12,7 @@ export default function Index() {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        router.replace('/(tabs)/explore');
+        router.replace('/(tabs)/popular');
       } else {
         router.replace('/(auth)/login');
       }
@@ -33,7 +33,7 @@ export default function Index() {
 
       if (session) {
         // User is logged in, go to main app
-        router.replace('/(tabs)/explore');
+        router.replace('/(tabs)/popular');
       } else {
         // User is not logged in, go to auth
         router.replace('/(auth)/login');

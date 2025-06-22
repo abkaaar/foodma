@@ -7,6 +7,7 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function TabLayout() {
@@ -28,11 +29,19 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="home"
+        name="popular"
         options={{
-          title: 'Home',
+          title: 'Popular',
           tabBarIcon: ({ color }) => 
-               <Ionicons name="home" size={28} color="green" />,
+         <FontAwesome6 name="square-arrow-up-right" size={24} color="green" />
+        }}
+      />
+        <Tabs.Screen
+        name="map"
+        options={{
+          title: 'Map',
+          tabBarIcon: ({ color }) => 
+               <Ionicons name="map" size={28} color="green" />,
         }}
       />
       <Tabs.Screen
