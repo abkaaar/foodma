@@ -44,13 +44,14 @@ export default function TabLayout() {
                <Ionicons name="map" size={28} color="green" />,
         }}
       />
+     
       <Tabs.Screen
-        name="profile"
+        name="you"
         options={{
-          title: 'Profile',
+          title: 'You',
           tabBarIcon: ({ color }) => 
           // <IconSymbol size={28} name="paperplane.fill" color={color} />,
-            <Ionicons name="person" size={28} color="green" />
+            <Ionicons name="person-circle" size={28} color="green" />
         }}
       />
     </Tabs>

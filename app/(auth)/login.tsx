@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -8,12 +8,40 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { supabase } from "../../lib/supabase";
+import { useUserAuthStore } from "../../hooks/useAuthStore";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  
+  // Get Zustand state and actions
+  const { 
+    login, 
+    isLoading, 
+    error, 
+    clearError,
+    isAuthenticated 
+  } = useUserAuthStore();
+
+  // Clear errors when component mounts
+  useEffect(() => {
+    clearError();
+  }, []);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/(tabs)/popular");
+    }
+  }, [isAuthenticated]);
+
+  // Show error alerts
+  useEffect(() => {
+    if (error) {
+      Alert.alert("Login Failed", error);
+      clearError();
+    }
+  }, [error]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -21,25 +49,13 @@ export default function LoginScreen() {
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.toLowerCase().trim(),
-        password,
-      });
-
-      if (error) {
-        Alert.alert("Login Failed", error.message);
-      } else {
-        // Explicit navigation to home screen
-        router.replace("/(tabs)/profile");
-      }
-    } catch {
-      Alert.alert("Error", "An unexpected error occurred");
-    } finally {
-      setLoading(false);
+    const success = await login(email, password);
+    
+    if (success) {
+      // Navigation handled by useEffect above
+      router.replace("/(tabs)/popular");
     }
+    // Error handling is automatic via Zustand state
   };
 
   return (
@@ -51,7 +67,9 @@ export default function LoginScreen() {
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
+          keyboardType="email-address"
           style={styles.input}
+          editable={!isLoading}
         />
         <TextInput
           placeholder="Password"
@@ -59,14 +77,15 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
           style={styles.input}
+          editable={!isLoading}
         />
         <TouchableOpacity
-          style={styles.loginButton}
+          style={[styles.loginButton, isLoading && styles.disabledButton]}
           onPress={handleLogin}
-          disabled={loading}
+          disabled={isLoading}
         >
-          <Text style={{color: 'white', fontSize: 15}}>
-            {loading ? "Logging in..." : "Login"}
+          <Text style={styles.loginButtonText}>
+            {isLoading ? "Logging in..." : "Login"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -75,6 +94,7 @@ export default function LoginScreen() {
         <TouchableOpacity
           style={styles.authButton}
           onPress={() => router.push("/(auth)/register")}
+          disabled={isLoading}
         >
           <Text style={styles.authButtonText}>Register</Text>
         </TouchableOpacity>
@@ -107,13 +127,9 @@ const styles = StyleSheet.create({
     padding: 10,
     borderStyle: "solid",
     borderColor: "blue",
-    borderWidth: 1, // Added border
-    borderRadius: 5, // Optional: rounded corners
-  },
-  authButtonText: {
-    color: "#ff4444",
+    borderWidth: 1,
+    borderRadius: 5,
     fontSize: 16,
-    fontWeight: "600",
   },
   loginButton: {
     backgroundColor: 'blue',
@@ -122,6 +138,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     borderWidth: 1,
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
+    borderColor: '#ccc',
+  },
+  loginButtonText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  authButtonText: {
+    color: "#ff4444",
+    fontSize: 16,
+    fontWeight: "600",
   },
   authButton: {
     backgroundColor: "#fff",

@@ -9,14 +9,22 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "FoodMa needs access to your location to show nearby restaurants and deliver food to your address.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "FoodMa needs access to your location to show nearby restaurants and deliver food to your address."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -33,7 +41,15 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "FoodMa needs access to your location to show nearby restaurants and deliver food to your address.",
+          "locationWhenInUsePermission": "FoodMa needs access to your location to show nearby restaurants and deliver food to your address."
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

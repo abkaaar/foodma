@@ -1,11 +1,17 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { supabase } from "../../lib/supabase";
 
 export default function RegisterScreen() {
-
- const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,6 +24,7 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
+      // register the user with Supabase auth
       const { error } = await supabase.auth.signUp({
         email: email.toLowerCase().trim(),
         password,
@@ -25,16 +32,14 @@ export default function RegisterScreen() {
 
       if (error) {
         Alert.alert("Registration Error", error.message);
-      } else {
-        Alert.alert("Success", "Check your email to confirm your account.", [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(auth)/login"),
-          },
-        ]);
+        return;
       }
-    } catch {
-      Alert.alert("Error", "An unexpected error occurred");
+      // Optionally, you can redirect the user to the login page or home page
+      Alert.alert("Success", "Registration successful! Please log in.");
+      router.push("/(tabs)/you");
+    } catch (error) {
+      console.error("Registration error:", error);
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -63,13 +68,15 @@ export default function RegisterScreen() {
           onPress={handleRegister}
           disabled={loading}
         >
-          <Text style={{color: 'white', fontSize: 15}}>
+          <Text style={{ color: "white", fontSize: 15 }}>
             {loading ? "Taking you in fresh..." : "Register"}
           </Text>
         </TouchableOpacity>
       </View>
       <View>
-        <Text style={{ textAlign: "center" }}>Already have an account? Login</Text>
+        <Text style={{ textAlign: "center" }}>
+          Already have an account? Login
+        </Text>
         <TouchableOpacity
           style={styles.authButton}
           onPress={() => router.push("/(auth)/login")}
@@ -114,7 +121,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   registerButton: {
-    backgroundColor: 'blue',
+    backgroundColor: "blue",
     marginHorizontal: 20,
     paddingVertical: 15,
     borderRadius: 8,
@@ -134,7 +141,6 @@ const styles = StyleSheet.create({
 });
 
 // export default function RegisterScreen() {
-
 
 //   return (
 //     <View style={styles.container}>

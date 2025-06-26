@@ -1,53 +1,27 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { useUserAuthStore } from '../hooks/useAuthStore';
 
 export default function Index() {
-  const [loading, setLoading] = useState(true);
+  // Get Zustand state and actions
+  const { checkAuthStatus, isLoading } = useUserAuthStore();
 
   useEffect(() => {
+    // Use Zustand's checkAuthStatus instead of local function
     checkAuthStatus();
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        router.replace('/(tabs)/popular');
-      } else {
-        router.replace('/(auth)/login');
-      }
-    });
+  }, [checkAuthStatus]);
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Auth check error:', error);
-        router.replace('/(auth)/login');
-        return;
-      }
-
-      if (session) {
-        // User is logged in, go to main app
-        router.replace('/(tabs)/popular');
-      } else {
-        // User is not logged in, go to auth
-        router.replace('/(auth)/login');
-      }
-    } catch (error) {
-      console.error('Unexpected auth error:', error);
-      router.replace('/(auth)/login');
-    } finally {
-      setLoading(false);
+  // Navigate when loading is complete
+  useEffect(() => {
+    if (!isLoading) {
+      // Always redirect to main app (since you allow guest access)
+      router.replace('/(tabs)/popular');
     }
-  };
+  }, [isLoading]);
 
   // Show loading screen while checking auth
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ff6b35" />
