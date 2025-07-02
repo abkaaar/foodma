@@ -1,99 +1,194 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { supabase } from "../../lib/supabase";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useUserAuthStore } from "../../hooks/useAuthStore";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  
+  // Get Zustand state and actions
+  const { 
+    register, 
+    isLoading, 
+    error, 
+    clearError,
+    isAuthenticated 
+  } = useUserAuthStore();
+
+  // Clear errors when component mounts
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/(tabs)/you");
+    }
+  }, [isAuthenticated]);
+
+  // Show error alerts
+  useEffect(() => {
+    if (error) {
+      Alert.alert("Registration Failed", error);
+      clearError();
+    }
+  }, [error, clearError]);
 
   const handleRegister = async () => {
-    if (!email || !password) {
+    if (!email || !password || !fullName) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
-    setLoading(true);
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords don't match");
+      return;
+    }
 
-    try {
-      // register the user with Supabase auth
-      const { error } = await supabase.auth.signUp({
-        email: email.toLowerCase().trim(),
-        password,
-      });
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
 
-      if (error) {
-        Alert.alert("Registration Error", error.message);
-        return;
-      }
-      // Optionally, you can redirect the user to the login page or home page
-      Alert.alert("Success", "Registration successful! Please log in.");
-      router.push("/(tabs)/you");
-    } catch (error) {
-      console.error("Registration error:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
-    } finally {
-      setLoading(false);
+    const success = await register(email, password, {
+      username: fullName.trim(),
+    });
+    
+    if (success) {
+      router.replace("/(tabs)/you");
+    }
+  };
+
+  const handleGoBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/you");
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.items}>
-        <Text style={styles.loginText}>Register</Text>
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          style={styles.input}
-        />
-        <TouchableOpacity
-          style={styles.registerButton}
-          onPress={handleRegister}
-          disabled={loading}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      {/* Header with back arrow */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={handleGoBack}
+          disabled={isLoading}
         >
-          <Text style={{ color: "white", fontSize: 15 }}>
-            {loading ? "Taking you in fresh..." : "Register"}
-          </Text>
+          <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Create Account</Text>
+        <View style={styles.headerSpacer} />
       </View>
-      <View>
-        <Text style={{ textAlign: "center" }}>
-          Already have an account? Login
-        </Text>
-        <TouchableOpacity
-          style={styles.authButton}
-          onPress={() => router.push("/(auth)/login")}
-        >
-          <Text style={styles.authButtonText}>Login</Text>
-        </TouchableOpacity>
+
+      <View style={styles.content}>
+        <View style={styles.items}>
+          <Text style={styles.registerText}>Join FoodMa</Text>
+          <Text style={styles.subtitle}>Create your account to get started</Text>
+          
+          <TextInput
+            placeholder="Name"
+            value={fullName}
+            onChangeText={setFullName}
+            autoCapitalize="words"
+            style={styles.input}
+            editable={!isLoading}
+            placeholderTextColor={"#999"}
+          />
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
+            editable={!isLoading}
+            placeholderTextColor={"#999"}
+          />
+          <TextInput
+            placeholder="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            style={styles.input}
+            editable={!isLoading}
+            placeholderTextColor={"#999"}
+          />
+          <TextInput
+            placeholder="Confirm Password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            style={styles.input}
+            editable={!isLoading}
+            placeholderTextColor={"#999"}
+          />
+          
+          <TouchableOpacity
+            style={[styles.registerButton, isLoading && styles.disabledButton]}
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            <Text style={styles.registerButtonText}>
+              {isLoading ? "Creating Account..." : "Create Account"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+    
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 30,
     flex: 1,
-    justifyContent: "center",
     backgroundColor: "#fff",
+  },
+  // Header styles
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  backButton: {
+    padding: 5,
+    borderRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  headerSpacer: {
+    width: 34, // Same as back button to center title
+  },
+  // Content container
+  content: {
+    flex: 1,
+    padding: 30,
+    justifyContent: "center",
   },
   items: {
     justifyContent: "center",
@@ -101,78 +196,69 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 20,
   },
-  loginText: {
+  registerText: {
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: "700",
-    color: "red",
+    color: "#333",
+    marginBottom: 5,
+  },
+  subtitle: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 20,
   },
   input: {
     height: 60,
-    padding: 10,
+    padding: 15,
     borderStyle: "solid",
-    borderColor: "blue",
-    borderWidth: 1, // Added border
-    borderRadius: 5, // Optional: rounded corners
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 10,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
+  },
+  registerButton: {
+    backgroundColor: 'green',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
+    borderColor: '#ccc',
+  },
+  registerButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Footer styles
+  footer: {
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  footerText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 15,
   },
   authButtonText: {
-    color: "#ff4444",
+    color: "green",
     fontSize: 16,
     fontWeight: "600",
   },
-  registerButton: {
-    backgroundColor: "blue",
-    marginHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    borderWidth: 1,
-  },
   authButton: {
     backgroundColor: "#fff",
-    marginHorizontal: 20,
-    marginVertical: 20,
     paddingVertical: 15,
-    borderRadius: 8,
+    paddingHorizontal: 30,
+    borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ff4444",
+    borderColor: "green",
+    minWidth: 200,
   },
 });
-
-// export default function RegisterScreen() {
-
-//   return (
-//     <View style={styles.container}>
-//       <Text>Register</Text>
-//       <TextInput
-//         placeholder="Email"
-//         value={email}
-//         onChangeText={setEmail}
-//         autoCapitalize="none"
-//         style={{ borderBottomWidth: 1, marginBottom: 10 }}
-//       />
-//       <TextInput
-//         placeholder="Password"
-//         secureTextEntry
-//         value={password}
-//         onChangeText={setPassword}
-//         style={{ borderBottomWidth: 1, marginBottom: 20 }}
-//       />
-//       <Button title="Register" onPress={handleRegister} />
-//       <Button
-//         title="Already have an account? Login"
-//         onPress={() => router.push("/(auth)/login")}
-//       />
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     padding: 30,
-//     flex: 1,
-//     justifyContent: 'center',
-//     backgroundColor: '#fff',
-//   }
-// });

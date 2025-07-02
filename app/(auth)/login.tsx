@@ -1,13 +1,16 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserAuthStore } from "../../hooks/useAuthStore";
 
 export default function LoginScreen() {
@@ -26,12 +29,12 @@ export default function LoginScreen() {
   // Clear errors when component mounts
   useEffect(() => {
     clearError();
-  }, []);
+  }, [clearError]);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/(tabs)/popular");
+      router.replace("/(tabs)/you");
     }
   }, [isAuthenticated]);
 
@@ -41,7 +44,7 @@ export default function LoginScreen() {
       Alert.alert("Login Failed", error);
       clearError();
     }
-  }, [error]);
+  }, [error, clearError]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -53,62 +56,118 @@ export default function LoginScreen() {
     
     if (success) {
       // Navigation handled by useEffect above
-      router.replace("/(tabs)/popular");
+      router.replace("/(tabs)/you");
     }
     // Error handling is automatic via Zustand state
   };
 
+  const handleGoBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/you");
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.items}>
-        <Text style={styles.loginText}>Login</Text>
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          style={styles.input}
-          editable={!isLoading}
-        />
-        <TextInput
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          style={styles.input}
-          editable={!isLoading}
-        />
-        <TouchableOpacity
-          style={[styles.loginButton, isLoading && styles.disabledButton]}
-          onPress={handleLogin}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      {/* ✅ Header with back arrow */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={handleGoBack}
           disabled={isLoading}
         >
-          <Text style={styles.loginButtonText}>
-            {isLoading ? "Logging in..." : "Login"}
-          </Text>
+          <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Sign In</Text>
+        <View style={styles.headerSpacer} />
       </View>
-      <View>
-        <Text style={{ textAlign: "center" }}>Need an account? Register</Text>
-        <TouchableOpacity
-          style={styles.authButton}
-          onPress={() => router.push("/(auth)/register")}
-          disabled={isLoading}
-        >
-          <Text style={styles.authButtonText}>Register</Text>
-        </TouchableOpacity>
+
+      <View style={styles.content}>
+        <View style={styles.items}>
+          <Text style={styles.loginText}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to your account</Text>
+          
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor={"#999"}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
+            editable={!isLoading}
+          />
+          <TextInput
+            placeholder="Password"
+            secureTextEntry
+            placeholderTextColor={"#999"}
+            value={password}
+            onChangeText={setPassword}
+            style={styles.input}
+            editable={!isLoading}
+          />
+          <TouchableOpacity
+            style={[styles.loginButton, isLoading && styles.disabledButton]}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            <Text style={styles.loginButtonText}>
+              {isLoading ? "Signing in..." : "Sign In"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Need an account?</Text>
+          <TouchableOpacity
+            style={styles.authButton}
+            onPress={() => router.push("/(auth)/register")}
+            disabled={isLoading}
+          >
+            <Text style={styles.authButtonText}>Create Account</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 30,
     flex: 1,
-    justifyContent: "center",
     backgroundColor: "#fff",
+  },
+  // ✅ Header styles
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  backButton: {
+    padding: 5,
+    borderRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  headerSpacer: {
+    width: 34, // Same as back button to center title
+  },
+  // ✅ Content container
+  content: {
+    flex: 1,
+    padding: 30,
+    justifyContent: "center",
   },
   items: {
     justifyContent: "center",
@@ -118,26 +177,34 @@ const styles = StyleSheet.create({
   },
   loginText: {
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: "700",
-    color: "red",
+    color: "#333",
+    marginBottom: 5,
+  },
+  // ✅ Added subtitle
+  subtitle: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 20,
   },
   input: {
     height: 60,
-    padding: 10,
+    padding: 15,
     borderStyle: "solid",
-    borderColor: "blue",
+    borderColor: "#ddd",
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 10,
     fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
   loginButton: {
-    backgroundColor: 'blue',
-    marginHorizontal: 20,
+    backgroundColor: 'green',
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
-    borderWidth: 1,
+    marginTop: 10,
   },
   disabledButton: {
     backgroundColor: '#ccc',
@@ -145,22 +212,33 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: 'white',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
+  // ✅ Footer styles
+  footer: {
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  footerText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 15,
+  },
   authButtonText: {
-    color: "#ff4444",
+    color: "green",
     fontSize: 16,
     fontWeight: "600",
   },
   authButton: {
     backgroundColor: "#fff",
-    marginHorizontal: 20,
-    marginVertical: 20,
     paddingVertical: 15,
-    borderRadius: 8,
+    paddingHorizontal: 30,
+    borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ff4444",
+    borderColor: "green",
+    minWidth: 200,
   },
 });

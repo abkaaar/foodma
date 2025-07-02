@@ -1,19 +1,27 @@
-import React from 'react';
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Dimensions,
   FlatList,
   Image,
+  RefreshControl,
+  StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// Get screen dimensions for responsive layout
-const { width } = Dimensions.get('window');
-const numColumns = width > 600 ? 3 : 2; // 3 columns on tablets, 2 on phones
-const itemSize = (width - 30 - (numColumns - 1) * 10) / numColumns; // Account for padding and gaps
+// Get screen dimensions for responsive grid
+const { width: screenWidth } = Dimensions.get("window");
+const numColumns = 2;
+const itemMargin = 8;
+const itemSize = (screenWidth - (numColumns + 1) * itemMargin) / numColumns;
 
 // Mock data interface
 interface FoodItem {
@@ -23,146 +31,205 @@ interface FoodItem {
   price: number;
 }
 
-// Mock data - 15 food items
-const mockFoodData: FoodItem[] = [
-  {
-    id: '1',
-    image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop',
-    name: 'Margherita Pizza',
-    price: 12.99,
-  },
-  {
-    id: '2',
-    image_url: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=400&h=400&fit=crop',
-    name: 'Cheeseburger',
-    price: 9.99,
-  },
-  {
-    id: '3',
-    image_url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop',
-    name: 'Caesar Salad',
-    price: 8.50,
-  },
-  {
-    id: '4',
-    image_url: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop',
-    name: 'Pasta Carbonara',
-    price: 14.99,
-  },
-  {
-    id: '5',
-    image_url: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&h=400&fit=crop',
-    name: 'Chicken Tacos',
-    price: 11.99,
-  },
-  {
-    id: '6',
-    image_url: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=400&fit=crop',
-    name: 'Avocado Toast',
-    price: 7.99,
-  },
-  {
-    id: '7',
-    image_url: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=400&fit=crop',
-    name: 'Chicken Sandwich',
-    price: 10.50,
-  },
-  {
-    id: '8',
-    image_url: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&h=400&fit=crop',
-    name: 'Greek Salad',
-    price: 9.50,
-  },
-  {
-    id: '9',
-    image_url: 'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&h=400&fit=crop',
-    name: 'BBQ Ribs',
-    price: 18.99,
-  },
-  {
-    id: '10',
-    image_url: 'https://images.unsplash.com/photo-1551782450-17144efb9c50?w=400&h=400&fit=crop',
-    name: 'Fish & Chips',
-    price: 13.99,
-  },
-  {
-    id: '11',
-    image_url: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&h=400&fit=crop',
-    name: 'Veggie Burger',
-    price: 11.50,
-  },
-  {
-    id: '12',
-    image_url: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=400&fit=crop',
-    name: 'Grilled Steak',
-    price: 22.99,
-  },
-  {
-    id: '13',
-    image_url: 'https://images.unsplash.com/photo-1551326844-4df70f78d0e9?w=400&h=400&fit=crop',
-    name: 'Chicken Wings',
-    price: 12.50,
-  },
-  {
-    id: '14',
-    image_url: 'https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=400&h=400&fit=crop',
-    name: 'Sushi Roll',
-    price: 16.99,
-  },
-  {
-    id: '15',
-    image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop',
-    name: 'Pepperoni Pizza',
-    price: 14.50,
-  },
-];
-
 const Popular: React.FC = () => {
+   const router = useRouter();
+  // ✅ Use FoodData as you had it
+  const [FoodData, setFoodData] = useState<FoodItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isToggled, setIsToggled] = useState(false);
+
+  // ✅ Update handleItemPress to navigate to post details
   const handleItemPress = (item: FoodItem) => {
-    console.log('Pressed item:', item.id, item.name);
+    console.log('Navigating to post details:', item.id, item.name);
+    router.push(`/(screens)/postDetails?id=${item.id}`);
   };
 
-  const renderFoodItem = ({ item }: { item: FoodItem }) => (
-    <TouchableOpacity
-      style={[styles.itemContainer, { width: itemSize }]}
-      onPress={() => handleItemPress(item)}
-      activeOpacity={0.8}
-    >
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.image_url }}
-          style={styles.foodImage}
-          resizeMode="cover"
-        />
-        <View style={styles.overlay}>
-          <View style={styles.textContainer}>
-            <Text style={styles.foodName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text style={styles.foodPrice}>
-              ${item.price.toFixed(2)}
-            </Text>
+  // ✅ Function to fetch posts and convert them to FoodData format
+  const fetchFoodData = async () => {
+    try {
+      const { data: posts, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching posts:", error);
+        Alert.alert("Error", "Failed to load food data");
+        return;
+      }
+
+      // ✅ Convert posts to FoodData format
+      const foodItems: FoodItem[] = posts.map((post) => ({
+        id: post.id,
+        image_url:
+          post.image_url ||
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop", // fallback image
+        name: post.title,
+        price: post.price || 0,
+      }));
+
+      setFoodData(foodItems);
+      console.log("Fetched food data:", foodItems.length, "items");
+    } catch (error) {
+      console.error("Error in fetchFoodData:", error);
+      Alert.alert("Error", "Something went wrong while loading food data");
+    }
+  };
+
+  // ✅ Function to handle pull-to-refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchFoodData();
+    setRefreshing(false);
+  };
+
+  // ✅ Fetch data when component mounts
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await fetchFoodData();
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+
+
+  const renderFoodItem = ({
+    item,
+    index,
+  }: {
+    item: FoodItem;
+    index: number;
+  }) => {
+    return (
+      <TouchableOpacity
+        style={styles.itemContainer}
+        onPress={() => handleItemPress(item)}
+        activeOpacity={0.8}
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: item.image_url }}
+            style={styles.foodImage}
+            resizeMode="cover"
+          />
+          <View style={styles.overlay}>
+            <View style={styles.textContainer}>
+              <Text style={styles.foodName} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.foodPrice}>₦{item.price.toFixed(2)}</Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
+
+  // ✅ Show loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="#fff"
+          translucent={false}
+        />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Foodma</Text>
+        </View>
+
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="green" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#fff"
+        translucent={false}
+      />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Explore</Text>
+        <TextInput
+          style={{
+            flex: 1,
+            fontSize: 14,
+            color: "#333",
+            paddingVertical: 8,
+            height: 40,
+            // borderColor: "#F0F0F0",
+            backgroundColor: "#F0F0F0",
+            // borderWidth: 1,
+            borderRadius: 40,
+            paddingHorizontal: 10,
+          }}
+          placeholder="Search for cusines and dishes"
+          placeholderTextColor="#888"
+          numberOfLines={1}
+        />
+        <View 
+        style={{ paddingHorizontal:10, flexDirection: "column", gap: 4}}
+        >
+          <Text style={{ marginLeft: 6, fontSize: 14, color: "#888" }}>
+            Near me
+          </Text>
+          <TouchableOpacity
+            style={{
+              width: 50,
+              height: 28,
+              backgroundColor: isToggled ? "green" : "#ccc",
+              borderRadius: 14,
+              padding: 2,
+              marginLeft: 8,
+              justifyContent: "center",
+            }}
+            onPress={() => {
+              setIsToggled(!isToggled);
+              console.log("Toggle pressed, new state:", !isToggled);
+            }}
+          >
+            <View
+              style={{
+                width: 24,
+                height: 24,
+                backgroundColor: "#fff",
+                borderRadius: 12,
+                alignSelf: isToggled ? "flex-end" : "flex-start",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.2,
+                shadowRadius: 2,
+                elevation: 2,
+              }}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
-      
+
       <FlatList
-        data={mockFoodData}
+        data={FoodData}
         renderItem={renderFoodItem}
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
-        columnWrapperStyle={numColumns > 1 ? styles.row : undefined}
         contentContainerStyle={styles.listContainer}
+        columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["green"]}
+            tintColor="green"
+          />
+        }
       />
     </SafeAreaView>
   );
@@ -171,71 +238,88 @@ const Popular: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    flexDirection: "row",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    elevation: 2, // Android shadow
+    shadowColor: "#000", // iOS shadow   
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "green",
   },
   listContainer: {
-    padding: 15,
+    padding: itemMargin,
   },
   row: {
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   itemContainer: {
-    marginBottom: 10,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    width: itemSize,
+    marginBottom: itemMargin,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    elevation: 2, // Android shadow
+    shadowColor: "#000", // iOS shadow
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 2,
   },
   imageContainer: {
-    position: 'relative',
+    position: "relative",
+    width: "100%",
+    height: itemSize * 1.6, // Adjust height for better aspect ratio
   },
   foodImage: {
-    width: '100%',
-    height: itemSize * 1.2, // Slightly taller for better aspect ratio
+    width: "100%",
+    height: "100%",
   },
   overlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
+    position: "absolute",
+    bottom: 5,
+    left: 4,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    padding: 8,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    padding: 6,
+    width: 100,
+    borderRadius: 10,
   },
   textContainer: {
-    flexDirection: 'column',
+    flexDirection: "column",
   },
   foodName: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
     marginBottom: 2,
   },
   foodPrice: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "500",
     opacity: 0.9,
   },
-  separator: {
-    height: 10,
+  // ✅ Added loading styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
   },
 });
 

@@ -9,6 +9,7 @@ import {
   Image,
   Modal,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -227,7 +228,7 @@ export default function Map() {
             <View style={styles.cardInfo}>
               <Text style={styles.cardTitle}>{selectedUser.username}</Text>
               <Text style={styles.cardAddress} numberOfLines={2}>
-                📍 {selectedUser.location}
+                {selectedUser.location}
               </Text>
               <Text style={styles.cardDescription} numberOfLines={2}>
                 {selectedUser.bio ||
@@ -235,7 +236,7 @@ export default function Map() {
               </Text>
             </View>
             <TouchableOpacity style={styles.bookmarkButton}>
-              <Ionicons name="bookmark-outline" size={20} color="#007AFF" />
+              <Ionicons name="bookmark-outline" size={20} color="green" />
             </TouchableOpacity>
           </View>
         </View>
@@ -246,7 +247,7 @@ export default function Map() {
   const renderListView = () => (
     <View style={styles.listContainer}>
       <Text style={styles.listHeader}>
-        {loading ? "Loading users..." : `Viewing ${users.length} users`}
+        {loading ? "Loading users..." : `Viewing ${users.length} places`}
       </Text>
 
       {loading ? (
@@ -263,45 +264,45 @@ export default function Map() {
               key={user.id}
               style={styles.listItem}
               onPress={() => {
-          setSelectedUser(user);
-          setViewMode("map");
-          if (user.latitude && user.longitude) {
-            setUserLocation({
-              latitude: user.latitude,
-              longitude: user.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            });
-          }
+                setSelectedUser(user);
+                setViewMode("map");
+                if (user.latitude && user.longitude) {
+                  setUserLocation({
+                    latitude: user.latitude,
+                    longitude: user.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  });
+                }
               }}
             >
               <View style={styles.listItemContent}>
-          <View style={styles.listItemImageContainer}>
-            {user.avatar_url ? (
-              <Image
-                source={{ uri: user.avatar_url }}
-                style={styles.listItemImage}
-              />
-            ) : (
-              <View style={styles.listItemImagePlaceholder}>
-                <Text style={styles.listItemImageText}>
-            {user.username.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.listItemInfo}>
-            <Text style={styles.listItemTitle}>{user.username}</Text>
-            <Text style={styles.listItemAddress} numberOfLines={2}>
-              📍 {user.location}
-            </Text>
-            <Text style={styles.listItemDescription} numberOfLines={2}>
-              {user.bio || "Member since " + formatDate(user.created_at)}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.listBookmarkButton}>
-            <Ionicons name="bookmark-outline" size={20} color="#007AFF" />
-          </TouchableOpacity>
+                <View style={styles.listItemImageContainer}>
+                  {user.avatar_url ? (
+                    <Image
+                      source={{ uri: user.avatar_url }}
+                      style={styles.listItemImage}
+                    />
+                  ) : (
+                    <View style={styles.listItemImagePlaceholder}>
+                      <Text style={styles.listItemImageText}>
+                        {user.username.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.listItemInfo}>
+                  <Text style={styles.listItemTitle}>{user.username}</Text>
+                  <Text style={styles.listItemAddress} numberOfLines={2}>
+                    {user.location}
+                  </Text>
+                  <Text style={styles.listItemDescription} numberOfLines={2}>
+                    {user.bio || "Member since " + formatDate(user.created_at)}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.listBookmarkButton}>
+                  <Ionicons name="bookmark-outline" size={20} color="green" />
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           ))}
@@ -310,11 +311,11 @@ export default function Map() {
             <View style={styles.emptyState}>
               <Ionicons name="people-outline" size={64} color="#ccc" />
               <Text style={styles.emptyStateText}>
-          No users found with location data
+                No Places found with location data
               </Text>
               <Text style={styles.emptyStateSubtext}>
-          Users need to update their location in settings to appear on the
-          map
+                Users need to update their location in settings to appear on the
+                map
               </Text>
             </View>
           )}
@@ -325,13 +326,53 @@ export default function Map() {
 
   // Cities array for city selection
   const cities = [
-    { name: "Lagos", latitude: 6.5244, longitude: 3.3792 },
-    { name: "Abuja", latitude: 9.0579, longitude: 7.4951 },
-    { name: "Port Harcourt", latitude: 4.8156, longitude: 7.0498 },
-    { name: "Kano", latitude: 12.0022, longitude: 8.5919 },
-    { name: "Ibadan", latitude: 7.3775, longitude: 3.947 },
-    { name: "Minna", latitude: 9.6152, longitude: 6.5535 },
-    // Add more cities as needed
+    { name: "Abuja", latitude: 9.072264, longitude: 7.491302 },
+  { name: "Lagos", latitude: 6.465422, longitude: 3.406448 },
+  { name: "Port Harcourt", latitude: 4.824167, longitude: 7.033611 },
+  { name: "Maiduguri", latitude: 11.833333, longitude: 13.15 },
+  { name: "Kano", latitude: 12.0, longitude: 8.516667 },
+  { name: "Katsina", latitude: 12.985531, longitude: 7.617144 },
+  { name: "Nnewi", latitude: 6.010519, longitude: 6.910345 },
+  { name: "Ogbomosho", latitude: 8.142165, longitude: 4.245186 },
+  { name: "Awka", latitude: 6.210528, longitude: 7.072277 },
+  { name: "Abeokuta", latitude: 7.145244, longitude: 3.327695 },
+  { name: "Ikeja", latitude: 6.605874, longitude: 3.349149 },
+  { name: "Ughelli", latitude: 5.500187, longitude: 5.993834 },
+  { name: "Akure", latitude: 7.250771, longitude: 5.210266 },
+  { name: "Calabar", latitude: 4.982873, longitude: 8.334503 },
+  { name: "Sapele", latitude: 5.879698, longitude: 5.700531 },
+  { name: "Onitsha", latitude: 6.141312, longitude: 6.802949 },
+  { name: "Zaria", latitude: 11.085541, longitude: 7.719945 },
+  { name: "Jos", latitude: 9.896527, longitude: 8.858331 },
+  { name: "Kaduna", latitude: 10.609319, longitude: 7.429504 },
+  { name: "Minna", latitude: 9.583555, longitude: 6.546316 },
+  { name: "Sokoto", latitude: 13.005873, longitude: 5.247552 },
+  { name: "Iwo", latitude: 7.629209, longitude: 4.187218 },
+  { name: "Yola", latitude: 9.203496, longitude: 12.49539 },
+  { name: "Benin City", latitude: 6.339185, longitude: 5.617447 },
+  { name: "Ondo", latitude: 7.100005, longitude: 4.841694 },
+  { name: "Warri", latitude: 5.54423, longitude: 5.760269 },
+  { name: "Enugu", latitude: 6.459964, longitude: 7.548949 },
+  { name: "Ikorodu", latitude: 6.616865, longitude: 3.508072 },
+  { name: "Owerri", latitude: 5.47631, longitude: 7.025853 },
+  { name: "Bauchi", latitude: 10.314159, longitude: 9.846282 },
+  { name: "Bida", latitude: 9.083333, longitude: 6.016667 },
+  { name: "Ado Ekiti", latitude: 7.621111, longitude: 5.221389 },
+  { name: "Gombe", latitude: 10.283333, longitude: 11.166667 },
+  { name: "Ilorin", latitude: 8.5, longitude: 4.55 },
+  { name: "Birnin Kebbi", latitude: 12.466078, longitude: 4.199524 },
+  { name: "Mubi", latitude: 10.616667, longitude: 13.383333 },
+  { name: "Eruwa", latitude: 7.536318, longitude: 3.418143 },
+  { name: "Wudil", latitude: 11.794242, longitude: 8.839032 },
+  { name: "Ofin", latitude: 6.54456, longitude: 3.514938 },
+  { name: "Uwheru", latitude: 5.307031, longitude: 6.056213 },
+  { name: "Burji", latitude: 11.171179, longitude: 8.548755 },
+  { name: "Aba", latitude: 5.107, longitude: 7.367 },
+  { name: "Abakaliki", latitude: 6.326, longitude: 8.109 },
+  { name: "Afikpo", latitude: 5.929, longitude: 7.931 },
+  { name: "Asaba", latitude: 6.204, longitude: 6.753 },
+  { name: "Auchi", latitude: 7.056, longitude: 6.270 },
+  { name: "Awgu", latitude: 6.189, longitude: 7.485 },
   ];
 
   // State and setter for city modal visibility
@@ -341,6 +382,11 @@ export default function Map() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#fff"
+        translucent={false}
+      />
       {/* Header with location refresh */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -348,43 +394,86 @@ export default function Map() {
           onPress={() => setCityModalVisible(true)}
         >
           <Text style={styles.locationText}>
-            {selectedCity ? selectedCity : "Select Location"}
+            {selectedCity ? selectedCity : "Select places"}
           </Text>
           <Ionicons name="arrow-down-sharp" size={20} color="#666" />
         </TouchableOpacity>
+
         {/* City selection modal */}
         <Modal
           visible={cityModalVisible}
-          transparent
           animationType="slide"
+          presentationStyle="pageSheet"
           onRequestClose={() => setCityModalVisible(false)}
         >
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.3)" }}>
-            <View style={{ backgroundColor: "white", borderRadius: 16, padding: 24, width: "80%" }}>
-              <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 16 }}>Choose a City</Text>
-              {cities.map((city) => (
-          <TouchableOpacity
-            key={city.name}
-            style={{ paddingVertical: 12 }}
-            onPress={() => {
-              setSelectedCity(city.name);
-              setUserLocation({
-                latitude: city.latitude,
-                longitude: city.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              });
-              setCityModalVisible(false);
-            }}
-          >
-            <Text style={{ fontSize: 16 }}>{city.name}</Text>
-          </TouchableOpacity>
+          <View style={{ flex: 1, paddingTop: 20 }}>
+            {/* Sticky Header */}
+            <Text
+              style={{
+                fontWeight: "bold",
+                fontSize: 18,
+                marginBottom: 16,
+                textAlign: "center",
+              }}
+            >
+              Select Location
+            </Text>
+
+            {/* Scrollable City List */}
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {cities.map((city, index) => (
+                <View key={city.name}>
+                  <TouchableOpacity
+                    style={{ paddingVertical: 16 }}
+                    onPress={() => {
+                      setSelectedCity(city.name);
+                      setUserLocation({
+                        latitude: city.latitude,
+                        longitude: city.longitude,
+                        latitudeDelta: 0.0922,
+                        longitudeDelta: 0.0421,
+                      });
+                      setCityModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 16, padding: 20 }}>{city.name}</Text>
+                  </TouchableOpacity>
+
+                  {/* Separator line (don't show after last item) */}
+                  {index < cities.length - 1 && (
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: "#e0e0e0",
+                      }}
+                    />
+                  )}
+                </View>
               ))}
-              <TouchableOpacity
-          style={{ marginTop: 16, alignSelf: "flex-end" }}
-          onPress={() => setCityModalVisible(false)}
-              >
-          <Text style={{ color: "#007AFF", fontWeight: "bold" }}>Cancel</Text>
+            </ScrollView>
+
+            {/* Fixed Cancel Button at Bottom Center */}
+            <View
+              style={{
+                paddingVertical: 20,
+                borderTopWidth: 1,
+                borderTopColor: "#e0e0e0",
+                alignItems: "center",
+              }}
+            >
+              <TouchableOpacity onPress={() => setCityModalVisible(false)}>
+                <Text
+                  style={{
+                    color: "green",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                  }}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -504,13 +593,13 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: "#4CAF50", // Green border
+    borderColor: "green", // Green border
   },
   defaultMarker: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#4CAF50", // Green background
+    backgroundColor: "green", // Green background
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
@@ -524,7 +613,7 @@ const styles = StyleSheet.create({
   // Bottom card styles
   bottomCard: {
     position: "absolute",
-    bottom: 80,
+    bottom: 120,
     left: 20,
     right: 20,
     backgroundColor: "white",
@@ -551,8 +640,8 @@ const styles = StyleSheet.create({
   cardImagePlaceholder: {
     width: 60,
     height: 60,
-    borderRadius: 30,
-    backgroundColor: "#4CAF50",
+    borderRadius: 10,
+    backgroundColor: "green",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -572,7 +661,7 @@ const styles = StyleSheet.create({
   },
   cardAddress: {
     fontSize: 14,
-    color: "#666",
+    color: "#000",
     marginBottom: 4,
   },
   cardDescription: {
@@ -620,13 +709,13 @@ const styles = StyleSheet.create({
   listItemImage: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 10,
   },
   listItemImagePlaceholder: {
     width: 50,
     height: 50,
-    borderRadius: 25,
-    backgroundColor: "#4CAF50",
+    borderRadius: 10,
+    backgroundColor: "green",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -646,7 +735,7 @@ const styles = StyleSheet.create({
   },
   listItemAddress: {
     fontSize: 13,
-    color: "#666",
+    color: "#000",
     marginBottom: 4,
   },
   listItemDescription: {
@@ -682,7 +771,7 @@ const styles = StyleSheet.create({
   toggleContainer: {
     flexDirection: "row",
     position: "absolute",
-    bottom: 20,
+    bottom: 60,
     left: "50%",
     transform: [{ translateX: -60 }],
     backgroundColor: "white",
@@ -694,13 +783,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   toggleButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     borderRadius: 25,
-    minWidth: 60,
+    minWidth: 40,
   },
   activeToggle: {
-    backgroundColor: "#4CAF50", // Green active state
+    backgroundColor: "green", // Green active state
   },
   toggleText: {
     fontSize: 14,
