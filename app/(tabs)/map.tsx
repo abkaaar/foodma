@@ -479,13 +479,6 @@ export default function Map() {
           </View>
         </Modal>
 
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={fetchUsers}
-          disabled={loading}
-        >
-          <Ionicons name="refresh" size={20} color="#007AFF" />
-        </TouchableOpacity>
       </View>
 
       {/* Main content */}

@@ -4,8 +4,10 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
+  Linking,
   ScrollView,
   Share,
   StatusBar,
@@ -29,7 +31,11 @@ interface PostDetail {
   user_id: string;
   created_at: string;
   updated_at: string;
-  username: string;
+  profiles?: {
+    id: string;
+    username: string;
+    phone: string;
+  };
 }
 
 export default function PostDetails() {
@@ -39,10 +45,9 @@ export default function PostDetails() {
   const [post, setPost] = useState<PostDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-// state for vendor otther posts
+  // state for vendor otther posts
   const [vendorPosts, setVendorPosts] = useState<PostDetail[]>([]);
   const [vendorLoading, setVendorLoading] = useState(false);
-
 
   useEffect(() => {
     const fetchPostDetails = async () => {
@@ -51,7 +56,15 @@ export default function PostDetails() {
 
         const { data, error } = await supabase
           .from("posts")
-          .select("*")
+          .select(
+            `*,
+            profiles(
+            id,
+            username,
+            phone
+            )
+            `
+          )
           .eq("id", id)
           .single();
 
@@ -75,7 +88,7 @@ export default function PostDetails() {
     }
   }, [id]);
 
-// ✅ Complete the fetchMoreVendorPost function
+  // ✅ Complete the fetchMoreVendorPost function
   useEffect(() => {
     const fetchMoreVendorPost = async () => {
       if (!post?.user_id) return;
@@ -109,18 +122,6 @@ export default function PostDetails() {
       fetchMoreVendorPost();
     }
   }, [post?.user_id]); // Dependency on post.user_id
-
-
-  // const formatDate = (dateString: string) => {
-  //   const date = new Date(dateString);
-  //   return date.toLocaleDateString("en-US", {
-  //     year: "numeric",
-  //     month: "long",
-  //     day: "numeric",
-  //     hour: "2-digit",
-  //     minute: "2-digit",
-  //   });
-  // };
 
   const handleShare = async () => {
     if (!post) return;
@@ -186,7 +187,10 @@ export default function PostDetails() {
       activeOpacity={0.8}
     >
       {item.image_url ? (
-        <Image source={{ uri: item.image_url }} style={styles.vendorPostImage} />
+        <Image
+          source={{ uri: item.image_url }}
+          style={styles.vendorPostImage}
+        />
       ) : (
         <View style={styles.vendorPostNoImage}>
           <Ionicons name="image-outline" size={20} color="#ccc" />
@@ -196,13 +200,9 @@ export default function PostDetails() {
         <Text style={styles.vendorPostTitle} numberOfLines={2}>
           {item.title}
         </Text>
-    
-       
       </View>
     </TouchableOpacity>
   );
-
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -269,7 +269,7 @@ export default function PostDetails() {
                   padding: 5,
                 }}
               >
-                <Text style={{fontSize:12}}>{post.title}</Text>
+                <Text style={{ fontSize: 12 }}>{post.title}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleShare}
@@ -279,7 +279,7 @@ export default function PostDetails() {
                   padding: 8,
                 }}
               >
-                <Text style={{fontSize:12}}>₦{post.price}</Text>
+                <Text style={{ fontSize: 12 }}>₦{post.price}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -295,7 +295,7 @@ export default function PostDetails() {
           <View style={{ flex: 1, gap: 10 }}>
             {/* Title */}
             <View>
-              <Text style={styles.postTitle}>{post.username}</Text>
+              <Text style={styles.postTitle}>{post?.profiles?.username}</Text>
             </View>
 
             {/* Location */}
@@ -342,7 +342,17 @@ export default function PostDetails() {
             <Ionicons name="restaurant-outline" size={20} color="#000" />
             <Text style={styles.ctaText}>MAKE RESERVATION</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.ctaButton}>
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={() => {
+              console.log("Call button pressed", post?.profiles?.phone);
+              if (post?.profiles?.phone) {
+                Linking.openURL(`tel:${post.profiles.phone}`);
+              } else {
+                Alert.alert("No phone number available");
+              }
+            }}
+          >
             <Ionicons name="call" size={20} color="#000" />
             <Text style={styles.ctaText}>CALL</Text>
           </TouchableOpacity>
@@ -352,18 +362,19 @@ export default function PostDetails() {
           <Text style={styles.descriptionText}>{post.description}</Text>
         </View>
 
-        
         {/* ✅ More from this vendor section */}
         {vendorPosts.length > 0 && (
           <View style={styles.vendorSection}>
             <Text style={styles.vendorSectionTitle}>
-              More from {post.username}
+              More from {post?.profiles?.username}
             </Text>
-            
+
             {vendorLoading ? (
               <View style={styles.vendorLoadingContainer}>
                 <ActivityIndicator size="small" color="green" />
-                <Text style={styles.vendorLoadingText}>Loading more posts...</Text>
+                <Text style={styles.vendorLoadingText}>
+                  Loading more posts...
+                </Text>
               </View>
             ) : (
               <FlatList

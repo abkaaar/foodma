@@ -49,7 +49,9 @@
           "locationWhenInUsePermission": "FoodMa needs access to your location to show nearby restaurants and deliver food to your address."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

@@ -112,7 +112,7 @@ export default function RegisterScreen() {
             editable={!isLoading}
             placeholderTextColor={"#999"}
           />
-          <TextInput
+            <TextInput
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
@@ -122,26 +122,7 @@ export default function RegisterScreen() {
             editable={!isLoading}
             placeholderTextColor={"#999"}
           />
-          <TextInput
-            placeholder="Password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-            editable={!isLoading}
-            placeholderTextColor={"#999"}
-          />
-          <TextInput
-            placeholder="Confirm Password"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            style={styles.input}
-            editable={!isLoading}
-            placeholderTextColor={"#999"}
-          />
-          
-          <TouchableOpacity
+                    <TouchableOpacity
             style={[styles.registerButton, isLoading && styles.disabledButton]}
             onPress={handleRegister}
             disabled={isLoading}

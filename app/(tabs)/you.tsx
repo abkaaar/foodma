@@ -47,7 +47,10 @@ export default function You() {
   const { user, isAuthenticated, error, logout, checkAuthStatus, clearError } =
     useUserAuthStore();
 
-  const [activeTab, setActiveTab] = useState<"saved" | "posts">("saved");
+  const shouldShowPostsTab = isAuthenticated && user?.role === "vendor";
+  const defaultTab = shouldShowPostsTab ? "posts" : "saved";
+
+  const [activeTab, setActiveTab] = useState<"saved" | "posts">(defaultTab);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   
   // ✅ Add posts state management
@@ -165,10 +168,13 @@ export default function You() {
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       fetchUserPosts();
+      const newDefaultTab = user.role === 'vendor' ? 'posts' : 'saved';
+      setActiveTab(newDefaultTab);
     } else {
       setPosts([]); // Clear posts when user logs out
+      setActiveTab('saved')
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id, user?.role]);
 
   // ✅ Handle errors from Zustand
   useEffect(() => {
@@ -326,7 +332,7 @@ export default function You() {
       <ScrollView 
         style={styles.scrollView}
         refreshControl={
-          activeTab === "posts" ? (
+          activeTab === "posts" && shouldShowPostsTab ? (
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
@@ -344,21 +350,39 @@ export default function You() {
                 <Text style={styles.name}>
                   {user.username || user.email?.split("@")[0] || "User"}
                 </Text>
+                 {/* ✅ Show role badge */}
+                <View style={styles.roleContainer}>
+                  <View style={[
+                    styles.roleBadge, 
+                    user.role === 'vendor' ? styles.vendorBadge : styles.userBadge
+                  ]}>
+                    <Text style={[
+                      styles.roleText,
+                      user.role === 'vendor' ? styles.vendorText : styles.userText
+                    ]}>
+                      {user.role === 'vendor' ? '🍽️ Vendor' : '👤 User'}
+                    </Text>
+                  </View>
+                </View>
+
                 <Text style={styles.bio}>
                   {user.bio || "Welcome to FoodMa!"}
                 </Text>
-                {/* ✅ Add posts count */}
-                <Text style={styles.postsCount}>
-                  {posts.length} {posts.length === 1 ? 'post' : 'posts'}
-                </Text>
+              {/* ✅ Show posts count only for vendors */}
+                {shouldShowPostsTab && (
+                  <Text style={styles.postsCount}>
+                    {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+                  </Text>
+                )}
               </View>
             ) : null}
           </View>
         </View>
 
-        {/* Tab Navigation */}
+       {/* ✅ Updated Tab Navigation - Conditional rendering based on role */}
         <View style={styles.tabContainer}>
-          {isAuthenticated && (
+          {/* Posts Tab - Only show for vendors */}
+          {shouldShowPostsTab && (
             <TouchableOpacity
               style={[styles.tab, activeTab === "posts" && styles.activeTab]}
               onPress={() => setActiveTab("posts")}
@@ -374,9 +398,10 @@ export default function You() {
             </TouchableOpacity>
           )}
 
+          {/* Saved Places Tab - Always visible */}
           <TouchableOpacity
             style={[
-              isAuthenticated ? styles.tab : styles.singleTab,
+              shouldShowPostsTab ? styles.tab : styles.singleTab,
               activeTab === "saved" && styles.activeTab,
             ]}
             onPress={() => setActiveTab("saved")}
@@ -451,8 +476,8 @@ export default function You() {
         </View>
       </ScrollView>
 
-      {/* Floating Action Button */}
-      {activeTab === "posts" && isAuthenticated && (
+       {/* ✅ Floating Action Button - Only show for vendors on posts tab */}
+      {activeTab === "posts" && shouldShowPostsTab && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => router.push("/(screens)/createPost")} 
@@ -1103,5 +1128,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 2,
+  },
+   // ✅ Role-related styles
+  roleContainer: {
+    marginTop: 5,
+    marginBottom: 8,
+  },
+  roleBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  vendorBadge: {
+    backgroundColor: 'rgba(0, 128, 0, 0.1)',
+  },
+  userBadge: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  },
+  roleText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  vendorText: {
+    color: 'green',
+  },
+  userText: {
+    color: '#3B82F6',
+  },
+  authPromptContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+  },
+  signInButton: {
+    backgroundColor: "green",
+    width: 150,
+    padding: 10,
+    borderRadius: 20,
+  },
+  signInButtonText: {
+    color: "white",
+    textAlign: "center",
   },
 });

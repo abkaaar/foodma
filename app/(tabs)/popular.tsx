@@ -239,6 +239,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingBottom: 40, // Add padding to avoid content being cut off
   },
   header: {
     flexDirection: "row",
